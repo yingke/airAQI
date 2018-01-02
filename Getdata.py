@@ -11,8 +11,6 @@ import json
 import datetime
 
 # 请求头信息
-
-
 headers = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
     'Accept-Encoding': 'gzip, deflate',
@@ -36,21 +34,34 @@ def main():
     ##连接airdata数据库，没有则自动创建
     tdb = connection.airdata;
     #连接airdatas 集合 没有则自动创建
-
     post = tdb.airdatas;
 
-    for i in range(1,4445):
-      params = {'page.pageNo': i, 'xmlname': 1462259560614, 'queryflag': 'close', 'V_DATE': '2017-01-01',
-                  'E_DATE': '2017-12-31'};
-      html = requests.post(url, data=params,headers=headers);
-      soup = BeautifulSoup(html.text, 'html.parser');
-      array = json.loads(soup.find(id="gisDataJson")["value"])
-      date = datetime.datetime.now().strftime('%H:%M:%S')
-      print(u"第%s次运行 时间：%s (获取：%s数据)" % (i, date, len(array)))
-      post.insert(array);
-      time.sleep(3)
+    # arrlen=12150;
+    # count = 406
+    arrlen=0
+    count = 0
+    while(count<4445):
+        try:
+            params = {'page.pageNo': count, 'xmlname': 1462259560614, 'queryflag': 'close', 'V_DATE': '2017-01-01',
+                      'E_DATE': '2017-12-31'};
+            html = requests.post(url, data=params, headers=headers);
+            soup = BeautifulSoup(html.text, 'html.parser');
+            array = json.loads(soup.find(id="gisDataJson")["value"])
+            date = datetime.datetime.now().strftime('%H:%M:%S')
+            arrlen+=len(array)
+            print(u"第%s次运行 时间：%s (获取：%s数据)" % (count, date, arrlen))
 
+
+        except Exception as s:
+            print(s)
+
+        try:
+            post.insert(array)
+            count+=1
+        except Exception as s:
+            print(s)
+
+        time.sleep(10)
 
 if __name__=='__main__':
     main()
-
